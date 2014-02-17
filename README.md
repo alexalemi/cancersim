@@ -1,4 +1,4 @@
-# nevi_code_plos1
+# cancersim
 
 Code for an elastic simulation of skin cancer.
 
