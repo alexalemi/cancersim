@@ -8,8 +8,6 @@ import math
 
 import matplotlib.cm as cm
 import matplotlib.colors as colors
-import matplotlib.colorbar as cb
-import matplotlib.pyplot as plt
 
 import cPickle as pickle
 
@@ -706,11 +704,6 @@ class CancerSim:
                 numero_cancer =  numero_cancer + 1               
             else :
                 col_arr.append(i.type.color)
-
-   
-
-        #cb.Colorbar(col_arr,kwargs)
-        
         #print '\n'
         #print col_arr
         #print '\n'
@@ -950,7 +943,6 @@ class CancerSim:
 
             renormalized_r = r1*r2/(r1+r2)
 
-
             delta=(r1+r2)-mod_disp
             
             if delta > 0:
@@ -958,20 +950,7 @@ class CancerSim:
                 a = self.a
                 forcestr = 'sqrt(renormalized_r) * a * delta**1.5*(1 + 1.15*omega**0.34 +9.5*omega + 9.288*omega**2)/(1+2.3*omega)*disp/mod_disp'
                 force = ne.evaluate(forcestr)
-                #print cell1.type, cell2.type, 'delta:', delta
-            else :
-                if cell1.type==self.cancer and cell2.type==self.cancer:
-                    #alpha = 0.1
-                    #forcestr = '-6*(alpha/(-delta))**7'
-                    if -delta<2.0 : 
-                        forcestr = '0.001*delta'
-                    else :
-                        forcestr = '0.0'
-                    force = ne.evaluate(forcestr)
-                    print '\n'
-                    print cell1.type, cell2.type, 'delta<0:', delta, 'force:', force
-                    print '\n'
-
+                
         return force
 
 

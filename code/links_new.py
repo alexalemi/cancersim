@@ -124,9 +124,8 @@ class Link(object):
         if stretch > 1.0:
             stress = 2*self.C_10*(stretch-1.0/(stretch*stretch))+6*self.C_11*(stretch*stretch-stretch-1+1.0/(stretch*stretch)+1.0/(stretch*stretch*stretch)-1.0/(stretch*stretch*stretch*stretch))
         else : 
-            stress = 2*self.C_10*(stretch-1)
-            #stress = 0.0
-
+            stress = 2*self.C_10*(stretch-1.0/(stretch*stretch))
+  
         return stress
     
 
@@ -134,14 +133,11 @@ class Link(object):
     @property
     def extension(self):
         """ Get the current extension of the link """
-        #abs_stress = self.stress_without_breaking()
+        abs_stress = self.stress_without_breaking()
         length = self.extension_without_breaking()
-      
         if not self.broken and length > self.maxstretch * self.L  and self.C_10 > 0 and self.C_11 > 0:
-            logger.warning('One of our links is breaking!')
-            print '\n'
-            print self.one.type.name, 'pos=', self.one.pos, self.two.type.name, 'pos=', self.two.pos,  'extension=',length, 'zero extension=',self.L, 'stretch=', length/self.L,  'max stretch=', self.maxstretch
-            print '\n'
+            ogger.warning('One of our links is breaking!')
+            print self.one.type.name, 'pos=', self.one.pos, self.two.type.name, 'pos=', self.two.pos, 'stress=',abs_stress, 'yield stress=',self.yield_stress, 'extension=',length, 'zero extension=',self.L
             self.C_10 = 0
             self.C_11 = 0
             self.broken = True
@@ -153,13 +149,13 @@ class Link(object):
     def stress(self):
         """ Stress from one to two """
         stretch = self.extension/self.L
-        #if stretch > 1.0:
-        stress = 2*self.C_10*(stretch-1.0/(stretch*stretch))+6*self.C_11*(stretch*stretch-stretch-1+1.0/(stretch*stretch)+1.0/(stretch*stretch*stretch)-1.0/(stretch*stretch*stretch*stretch))
-        #else : 
-         #   stress = 2*self.C_10*(stretch-1)
-            
+        if stretch > 1.0:
+            stress = 2*self.C_10*(stretch-1.0/(stretch*stretch))+6*self.C_11*(stretch*stretch-stretch-1+1.0/(stretch*stretch)+1.0/(stretch*stretch*stretch)-1.0/(stretch*stretch*stretch*stretch))
+        else : 
+            stress = 2*self.C_10*(stretch-1.0/(stretch*stretch))
 
-        return stress
+
+       return stress
     
 
 
@@ -179,8 +175,8 @@ class Link(object):
             stress = self.stress
             disp = self.disp
             self._cached_disp = disp
-            force = - stress * 3.141592 * average_cell_radius * average_cell_radius * unitize(disp)
-            self._cached_force = force 
+            force = stress * average_cell_radius * average_cell_radius * unitize(disp)
+            self._cached_force = force
             return force
         else:
             return self._cached_force

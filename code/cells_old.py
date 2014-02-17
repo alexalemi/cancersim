@@ -16,27 +16,25 @@ class CellType(object):
         Initialization / Attributes:
             * name : string name of cell type 
             * type_ind : an int for the cell type  
-            * C_10: first coefficient of  link_disp
-            * C_11: second coefficient of  link_disp
+            * k : spring constant (float) 
             * L : natural length of bonds (float) 
             * color='b' : set the color the plots
     """
     
     logger = base_logger.getChild('CellType')
-    def __init__(self,name,type_ind,C_10,C_11,L,color='b',maxstretch=1.2,*args,**kwargs):
+    def __init__(self,name,type_ind,k,L,color='b',maxstretch=1.2,*args,**kwargs):
         self.name = name
         self.type_ind = type_ind 
-        self.C_10 = C_10 
-        self.C_11 = C_11
+        self.k = k 
         self.L = L  
         self.color = color
-        self.maxstretch =maxstretch
+        self.maxstretch = maxstretch
         
         logger.debug("""Creating a CellType instance with:
                     {info}""".format(info=pprint.pformat(self.__dict__)))
 
     def __repr__(self):
-        return "<CellType: {0.name}, type_ind={0.type_ind}, C_10={0.C_10}, C_11={0.C_11}, L={0.L}>".format(self)
+        return "<CellType: {0.name}, type_ind={0.type_ind}, k={0.k}, L={0.L}>".format(self)
 
 class Cell(CellType):
     """ A cell object

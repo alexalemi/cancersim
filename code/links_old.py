@@ -43,19 +43,17 @@ class Link(object):
             * one: cell one
             * two: cell two
             * L: resting length of link_disp
-            * C_10: first coefficient of  stress-strain relationship
-            * C_11: second coefficient of  stress-strain relationship
+            * k: strength of link_disp
             * xsize: size of box (to handle periodic boundary conditions)
 
         Properties:
             * disp - displacement of spring
-            * stress - stress of spring
             * extension - compute the current link extension
             * energy - compute the current link energy
             * force - force of spring
     """
     logger = base_logger.getChild('Link')
-    def __init__(self,one,two,L=None,C_10=None,C_11=None,xsize=XSIZE,maxstretch=None):
+    def __init__(self,one,two,L=None,k=None,xsize=XSIZE,maxstretch=None):
         self.one = one
         self.two = two
         self.xsize=xsize
@@ -64,15 +62,10 @@ class Link(object):
             self.L = 0.5 * (self.one.type.L + self.two.type.L)
         else:
             self.L = L
-        if C_10 is None:
-            self.C_10 = 0.5 * (self.one.type.C_10 + self.two.type.C_10)
+        if k is None:
+            self.k = 0.5 * (self.one.type.k + self.two.type.k)
         else:
-            self.C_10 = C_10
-        if C_11 is None:
-            self.C_11 = 0.5 * (self.one.type.C_11 + self.two.type.C_11)
-        else:
-            self.C_11 = C_11
-
+            self.k = k
         if maxstretch is None:
             self.maxstretch = 0.5 * (self.one.type.maxstretch + self.two.type.maxstretch)
 
@@ -85,7 +78,7 @@ class Link(object):
                         {info}""".format(info=pprint.pformat(self.__dict__)))
 
     def __repr__(self):
-        return "<Link: C_10={0.C_10}, C_11={0.C_11}, L={0.L}, betwixt:{0.one},{0.two}>".format(self)
+        return "<Link: k={0.k}, L={0.L}, betwixt:{0.one},{0.two}>".format(self)
 
     @property
     def calculation_necessary(self):
@@ -111,76 +104,40 @@ class Link(object):
         else:
             return around
 
-
     def extension_without_breaking(self):
         """ Get the extension of the current link without breaking """
         length = norm(self.disp)
 
         return length
 
-    def stress_without_breaking(self):
-        """ Stress from one to two """
-        stretch = self.extension_without_breaking()/self.L
-        if stretch > 1.0:
-            stress = 2*self.C_10*(stretch-1.0/(stretch*stretch))+6*self.C_11*(stretch*stretch-stretch-1+1.0/(stretch*stretch)+1.0/(stretch*stretch*stretch)-1.0/(stretch*stretch*stretch*stretch))
-        else : 
-            stress = 2*self.C_10*(stretch-1)
-            #stress = 0.0
-
-        return stress
-    
-
-
     @property
     def extension(self):
         """ Get the current extension of the link """
-        #abs_stress = self.stress_without_breaking()
         length = self.extension_without_breaking()
-      
-        if not self.broken and length > self.maxstretch * self.L  and self.C_10 > 0 and self.C_11 > 0:
+        if not self.broken and length > self.maxstretch * self.L and self.k > 0:
             logger.warning('One of our links is breaking!')
-            print '\n'
-            print self.one.type.name, 'pos=', self.one.pos, self.two.type.name, 'pos=', self.two.pos,  'extension=',length, 'zero extension=',self.L, 'stretch=', length/self.L,  'max stretch=', self.maxstretch
-            print '\n'
-            self.C_10 = 0
-            self.C_11 = 0
+            self.k = 0
             self.broken = True
 
         return length
 
-
-    @property
-    def stress(self):
-        """ Stress from one to two """
-        stretch = self.extension/self.L
-        #if stretch > 1.0:
-        stress = 2*self.C_10*(stretch-1.0/(stretch*stretch))+6*self.C_11*(stretch*stretch-stretch-1+1.0/(stretch*stretch)+1.0/(stretch*stretch*stretch)-1.0/(stretch*stretch*stretch*stretch))
-        #else : 
-         #   stress = 2*self.C_10*(stretch-1)
-            
-
-        return stress
-    
-
-
     @property
     def energy(self):
         """ Get the energy stored in a link """
-        stretch = self.extension/self.L
-        return self.C_10*(stretch*stretch+2.0/stretch-3)+self.C_11*(2*stretch*stretch*stretch-3*stretch*stretch-6*stretch-6.0/stretch-3.0/(stretch*stretch)+2.0/(stretch*stretch*stretch*stretch)+14)
+        ext = self.extension
+        return 0.5*self.k*pow(ext-self.L,2)
 
     @property
     def force(self):
         """ Get the force the link enacts """
-        average_cell_radius = self.L/2.0
         if self.broken:
             return 0
         if self.calculation_necessary:
-            stress = self.stress
+            ext = self.extension
             disp = self.disp
             self._cached_disp = disp
-            force = - stress * 3.141592 * average_cell_radius * average_cell_radius * unitize(disp)
-            self._cached_force = force 
+            force = -self.k * ( ext - self.L ) * unitize(disp)
+            self._cached_force = force
             return force
         else:
             return self._cached_force

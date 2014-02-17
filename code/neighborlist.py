@@ -127,7 +127,7 @@ class NeighborList:
                 n = 0
             N.append(n)
             
-        offsets = np.empty((len(atoms), 3), int)
+        offsets = np.empty((len(atoms), 3), float)
         (scaled0 - scaled).round(out=offsets)
         positions0 = np.dot(scaled0, self.cell)
         natoms = len(atoms)
@@ -136,7 +136,7 @@ class NeighborList:
         self.nneighbors = 0
         self.npbcneighbors = 0
         self.neighbors = [np.empty(0, int) for a in range(natoms)]
-        self.displacements = [np.empty((0, 3), int) for a in range(natoms)]
+        self.displacements = [np.empty((0, 3), float) for a in range(natoms)]
         for n1 in range(0, N[0] + 1):
             for n2 in range(-N[1], N[1] + 1):
                 for n3 in range(-N[2], N[2] + 1):
@@ -155,7 +155,7 @@ class NeighborList:
                         self.nneighbors += len(i)
                         self.neighbors[a] = np.concatenate(
                             (self.neighbors[a], i))
-                        disp = np.empty((len(i), 3), int)
+                        disp = np.empty((len(i), 3), float)
                         disp[:] = (n1, n2, n3)
                         disp += offsets[i] - offsets[a]
                         self.npbcneighbors += disp.any(1).sum()
