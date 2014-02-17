@@ -3,3 +3,13 @@
 *.rst~
 readme~
 pics/*
+code/cython/build/
+pressure/
+states/
+temp/
+2D/
+3D/
+evolution/
+
+
+
