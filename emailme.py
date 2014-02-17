@@ -3,8 +3,8 @@ import smtplib
 from email.mime.text import MIMEText
 import netrc
 
-DEFAULTFROM = "alexalemi@gmail.com"
-DEFAULTTO = "alexalemi@gmail.com"
+DEFAULTFROM = "youremail@example.com"
+DEFAULTTO = "youremail@example.com"
 DEFAULTSUBJECT = "PYTHON NOTIFICATION"
 
 """
